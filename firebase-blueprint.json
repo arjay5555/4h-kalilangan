@@ -1,0 +1,183 @@
+{
+  "entities": {
+    "SiteSettings": {
+      "title": "Site Settings",
+      "description": "Global settings like mission, vision, and video URL",
+      "type": "object",
+      "properties": {
+        "mission": { "type": "string" },
+        "vision": { "type": "string" },
+        "videoUrl": { "type": "string" }
+      }
+    },
+    "CouncilMember": {
+      "title": "Council Member",
+      "description": "A member of the council of leaders",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "type": { "type": "string" }
+      },
+      "required": ["name", "role", "type"]
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "Upcoming or past activity",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "location": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["title", "date", "location", "type", "status"]
+    },
+    "Pillar": {
+      "title": "Pillar",
+      "description": "A pillar of 4-H",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "link": { "type": "string" }
+      },
+      "required": ["title", "description", "icon", "link"]
+    },
+    "DocumentItem": {
+      "title": "Document",
+      "description": "A document or form",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "link": { "type": "string" }
+      },
+      "required": ["title", "description", "type", "category", "link"]
+    },
+    "NewsItem": {
+      "title": "News Item",
+      "description": "News or press release",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string" },
+        "image": { "type": "string" }
+      },
+      "required": ["title", "excerpt", "date", "category", "image"]
+    },
+    "Partner": {
+      "title": "Partner",
+      "description": "A partner logo or name",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "logo": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Merchandise": {
+      "title": "Merchandise",
+      "description": "An item in the shop",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "description": { "type": "string" },
+        "sizes": { "type": "array" },
+        "rating": { "type": "number" },
+        "details": { "type": "string" }
+      },
+      "required": ["name", "price", "category", "image", "description"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A product review",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "user": { "type": "string" },
+        "comment": { "type": "string" },
+        "rating": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "user", "comment", "rating", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User specific data like wishlist",
+      "type": "object",
+      "properties": {
+        "wishlist": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["createdAt"]
+    },
+    "CartItem": {
+      "title": "Cart Item",
+      "description": "An item in the user's cart",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "quantity": { "type": "number" },
+        "size": { "type": "string" },
+        "addedAt": { "type": "string" }
+      },
+      "required": ["productId", "quantity", "addedAt"]
+    }
+  },
+  "firestore": {
+    "/settings/site": {
+      "schema": "SiteSettings",
+      "description": "Global settings"
+    },
+    "/council/{councilId}": {
+      "schema": "CouncilMember",
+      "description": "List of council members"
+    },
+    "/activities/{activityId}": {
+      "schema": "Activity",
+      "description": "List of activities"
+    },
+    "/pillars/{pillarId}": {
+      "schema": "Pillar",
+      "description": "List of pillars"
+    },
+    "/documents_col/{docId}": {
+      "schema": "DocumentItem",
+      "description": "List of documents"
+    },
+    "/news/{newsId}": {
+      "schema": "NewsItem",
+      "description": "List of news articles"
+    },
+    "/partners/{partnerId}": {
+      "schema": "Partner",
+      "description": "List of partners"
+    },
+    "/merchandise/{merchandiseId}": {
+      "schema": "Merchandise",
+      "description": "List of merchandise items in the shop"
+    },
+    "/merchandise/{merchandiseId}/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Reviews for a merchandise item"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document containing wishlist array"
+    },
+    "/users/{userId}/cart/{cartItemId}": {
+      "schema": "CartItem",
+      "description": "Items in the user's shopping cart"
+    }
+  }
+}

@@ -1,0 +1,188 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation for Merchandise
+    function isValidMerchandise(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'image', 'description']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.price is number && data.price >= 0 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 100 &&
+             data.image is string && data.image.size() <= 1000 &&
+             data.description is string && data.description.size() <= 5000 &&
+             (data.keys().hasAny(['sizes']) == false || (data.sizes is list && data.sizes.size() <= 20 && (data.sizes.size() == 0 || data.sizes[0] is string))) &&
+             (data.keys().hasAny(['rating']) == false || data.rating is number) &&
+             (data.keys().hasAny(['details']) == false || (data.details is string && data.details.size() <= 5000));
+    }
+
+    // Validation for Review
+    function isValidReview(data, userId) {
+      return data.keys().hasAll(['userId', 'user', 'comment', 'rating', 'createdAt']) &&
+             data.userId == userId &&
+             data.user is string && data.user.size() > 0 && data.user.size() <= 100 &&
+             data.comment is string && data.comment.size() > 0 && data.comment.size() <= 1000 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.createdAt == request.time;
+    }
+
+    // Validation for UserProfile
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['createdAt']) &&
+             data.createdAt == request.time &&
+             (data.keys().hasAny(['wishlist']) == false || (data.wishlist is list && data.wishlist.size() <= 100 && (data.wishlist.size() == 0 || data.wishlist[0] is string)));
+    }
+
+    // Validation for CartItem
+    function isValidCartItem(data) {
+      return data.keys().hasAll(['productId', 'quantity', 'addedAt']) &&
+             data.productId is string && data.productId.size() > 0 && data.productId.size() <= 128 &&
+             data.quantity is number && data.quantity > 0 && data.quantity <= 100 &&
+             (data.keys().hasAny(['size']) == false || (data.size is string && data.size.size() <= 50)) &&
+             (data.keys().hasAny(['color']) == false || (data.color is string && data.color.size() <= 50)) &&
+             data.addedAt == request.time;
+    }
+
+    match /merchandise/{merchandiseId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isSignedIn() && isValidId(merchandiseId) && isValidId(reviewId) && 
+                      isValidReview(incoming(), request.auth.uid) &&
+                      exists(/databases/$(database)/documents/merchandise/$(merchandiseId));
+        allow update, delete: if false;
+      }
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /council/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /activities/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /pillars/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /documents_col/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /financial_documents_col/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /news/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /partners/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /voices/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /transparency/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /staff/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /members/{docId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSignedIn();
+    }
+    match /minutes/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /memos/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /orders/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /messages/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isSignedIn();
+    }
+    match /media/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /pastAdmins/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /passwordResets/{docId} {
+      allow read: if isSignedIn();
+      allow write: if true;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      
+      allow create: if isOwner(userId) && isValidId(userId) &&
+                    incoming().keys().hasAll(['createdAt']) && incoming().keys().size() <= 2 &&
+                    isValidUserProfile(incoming());
+                    
+      allow update: if isOwner(userId) && isValidId(userId) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['wishlist']) &&
+                    (incoming().keys().hasAny(['wishlist']) == false || (incoming().wishlist is list && incoming().wishlist.size() <= 100 && (incoming().wishlist.size() == 0 || incoming().wishlist[0] is string)));
+
+      match /cart/{cartItemId} {
+        allow read: if isOwner(userId);
+        
+        allow create: if isOwner(userId) && isValidId(cartItemId) &&
+                      isValidCartItem(incoming()) &&
+                      exists(/databases/$(database)/documents/users/$(userId));
+        
+        allow update: if isOwner(userId) && isValidId(cartItemId) &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['quantity']) &&
+                      incoming().quantity is number && incoming().quantity > 0 && incoming().quantity <= 100;
+                      
+        allow delete: if isOwner(userId) && isValidId(cartItemId);
+      }
+    }
+  }
+}
